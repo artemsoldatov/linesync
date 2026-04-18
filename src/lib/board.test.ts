@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as Y from 'yjs';
-import { addSelection, createMarket, readBoard } from './board';
+import { addSelection, createMarket, readBoard, setOdds, setSuspended } from './board';
 
 // syncs updates both ways, the way a Yjs provider would over the wire
 function sync(a: Y.Doc, b: Y.Doc): void {
@@ -22,6 +22,41 @@ describe('board CRDT', () => {
     expect(board.markets).toHaveLength(1);
     expect(board.markets[0].selections.map((s) => s.label)).toEqual(['Home', 'Away']);
     expect(board.markets[0].selections[0].oddsMilli).toBe(2000);
+  });
+
+  it('converges when two peers edit different selections concurrently', () => {
+    const a = new Y.Doc();
+    seed(a);
+    const b = new Y.Doc();
+    sync(a, b); // b now has the seeded board
+
+    // concurrent, non-overlapping edits — no conflict
+    setOdds(a, 'm1', 's1', 2500);
+    setSuspended(b, 'm1', 's2', true);
+    sync(a, b);
+
+    for (const doc of [a, b]) {
+      const board = readBoard(doc);
+      const [home, away] = board.markets[0].selections;
+      expect(home.oddsMilli).toBe(2500);
+      expect(away.suspended).toBe(true);
+    }
+  });
+
+  it('converges on a conflicting edit to the same field (last write wins, deterministically)', () => {
+    const a = new Y.Doc();
+    seed(a);
+    const b = new Y.Doc();
+    sync(a, b);
+
+    setOdds(a, 'm1', 's1', 1900);
+    setOdds(b, 'm1', 's1', 2100);
+    sync(a, b);
+
+    const oddsA = readBoard(a).markets[0].selections[0].oddsMilli;
+    const oddsB = readBoard(b).markets[0].selections[0].oddsMilli;
+    expect(oddsA).toBe(oddsB); // converged
+    expect([1900, 2100]).toContain(oddsA);
   });
 
   it('a new market added offline arrives after reconnect', () => {

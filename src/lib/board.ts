@@ -63,6 +63,25 @@ export function addSelection(
   });
 }
 
+export function setOdds(doc: Y.Doc, marketId: string, selectionId: string, oddsMilli: number): void {
+  doc.transact(() => {
+    const sel = selectionsOf(doc, marketId)?.get(selectionId) as YMapAny | undefined;
+    sel?.set('oddsMilli', oddsMilli);
+  });
+}
+
+export function setSuspended(
+  doc: Y.Doc,
+  marketId: string,
+  selectionId: string,
+  suspended: boolean,
+): void {
+  doc.transact(() => {
+    const sel = selectionsOf(doc, marketId)?.get(selectionId) as YMapAny | undefined;
+    sel?.set('suspended', suspended);
+  });
+}
+
 export function readBoard(doc: Y.Doc): BoardSnapshot {
   const markets: Market[] = [];
   marketsMap(doc).forEach((value) => {
