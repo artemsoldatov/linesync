@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import * as Y from 'yjs';
-import { addSelection, createMarket, readBoard, setOdds, setSuspended } from './board';
+import {
+  addSelection,
+  createMarket,
+  readBoard,
+  setOdds,
+  setSuspended,
+  toggleSlip,
+} from './board';
 
 // syncs updates both ways, the way a Yjs provider would over the wire
 function sync(a: Y.Doc, b: Y.Doc): void {
@@ -57,6 +64,22 @@ describe('board CRDT', () => {
     const oddsB = readBoard(b).markets[0].selections[0].oddsMilli;
     expect(oddsA).toBe(oddsB); // converged
     expect([1900, 2100]).toContain(oddsA);
+  });
+
+  it('merges a shared slip built concurrently by two peers', () => {
+    const a = new Y.Doc();
+    seed(a);
+    const b = new Y.Doc();
+    sync(a, b);
+
+    toggleSlip(a, 'm1', 's1'); // a adds Home
+    toggleSlip(b, 'm1', 's2'); // b adds Away
+    sync(a, b);
+
+    for (const doc of [a, b]) {
+      const slip = readBoard(doc).slip;
+      expect(slip.map((p) => p.selectionId).sort()).toEqual(['s1', 's2']);
+    }
   });
 
   it('a new market added offline arrives after reconnect', () => {

@@ -1,8 +1,8 @@
 import * as Y from 'yjs';
 
 // The board is a Yjs document. Markets and selections are nested Y.Maps so two
-// people editing different lines never conflict. All money-ish values are
-// integer milli-units.
+// people editing different lines never conflict, and the shared slip is a Y.Map
+// keyed by selection id. All money-ish values are integer milli-units.
 
 export interface Selection {
   id: string;
@@ -18,14 +18,26 @@ export interface Market {
   selections: Selection[];
 }
 
+export interface SlipPick {
+  selectionId: string;
+  marketId: string;
+  label: string;
+  oddsMilli: number;
+}
+
 export interface BoardSnapshot {
   markets: Market[];
+  slip: SlipPick[];
 }
 
 type YMapAny = Y.Map<unknown>;
 
 function marketsMap(doc: Y.Doc): YMapAny {
   return doc.getMap('markets');
+}
+
+function slipMap(doc: Y.Doc): YMapAny {
+  return doc.getMap('slip');
 }
 
 export function createMarket(doc: Y.Doc, id: string, name: string, order: number): void {
@@ -82,6 +94,24 @@ export function setSuspended(
   });
 }
 
+export function toggleSlip(doc: Y.Doc, marketId: string, selectionId: string): void {
+  doc.transact(() => {
+    const slip = slipMap(doc);
+    if (slip.has(selectionId)) {
+      slip.delete(selectionId);
+      return;
+    }
+    const sel = selectionsOf(doc, marketId)?.get(selectionId) as YMapAny | undefined;
+    if (!sel) return;
+    slip.set(selectionId, {
+      selectionId,
+      marketId,
+      label: sel.get('label') as string,
+      oddsMilli: sel.get('oddsMilli') as number,
+    } satisfies SlipPick);
+  });
+}
+
 export function readBoard(doc: Y.Doc): BoardSnapshot {
   const markets: Market[] = [];
   marketsMap(doc).forEach((value) => {
@@ -106,5 +136,9 @@ export function readBoard(doc: Y.Doc): BoardSnapshot {
   });
   markets.sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
 
-  return { markets };
+  const slip: SlipPick[] = [];
+  slipMap(doc).forEach((value) => slip.push(value as SlipPick));
+  slip.sort((a, b) => a.selectionId.localeCompare(b.selectionId));
+
+  return { markets, slip };
 }
