@@ -6,15 +6,57 @@ import { formatDecimal } from '@/lib/odds';
 interface Props {
   marketId: string;
   selection: Selection;
+  onStep: (delta: number) => void;
+  onToggleSuspend: () => void;
 }
 
-export function SelectionRow({ selection }: Props) {
+export function SelectionRow({ selection, onStep, onToggleSuspend }: Props) {
   return (
-    <div className="flex items-center gap-2 rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2">
+    <div
+      className={`flex items-center gap-2 rounded-md border px-3 py-2 ${
+        selection.suspended
+          ? 'border-neutral-800 bg-neutral-900/40 text-neutral-500'
+          : 'border-neutral-800 bg-neutral-900'
+      }`}
+    >
       <span className="flex-1 truncate text-sm text-neutral-200">{selection.label}</span>
-      <span className="w-12 text-center font-mono text-sm tabular-nums text-cyan-300">
-        {formatDecimal(selection.oddsMilli)}
-      </span>
+
+      <div className="flex items-center gap-1">
+        <button
+          aria-label={`decrease ${selection.label} odds`}
+          className="h-6 w-6 rounded bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+          onClick={() => onStep(-50)}
+          disabled={selection.suspended}
+        >
+          −
+        </button>
+        <span
+          data-testid={`odds-${selection.id}`}
+          className="w-12 text-center font-mono text-sm tabular-nums text-cyan-300"
+        >
+          {formatDecimal(selection.oddsMilli)}
+        </span>
+        <button
+          aria-label={`increase ${selection.label} odds`}
+          className="h-6 w-6 rounded bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+          onClick={() => onStep(50)}
+          disabled={selection.suspended}
+        >
+          +
+        </button>
+      </div>
+
+      <button
+        aria-label={`toggle suspend ${selection.label}`}
+        className={`h-6 rounded px-2 text-xs ${
+          selection.suspended
+            ? 'bg-amber-900/60 text-amber-300'
+            : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700'
+        }`}
+        onClick={onToggleSuspend}
+      >
+        {selection.suspended ? 'susp' : 'live'}
+      </button>
     </div>
   );
 }

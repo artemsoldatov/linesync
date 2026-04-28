@@ -3,8 +3,19 @@
 import { useBoard } from '@/hooks/useBoard';
 import { MarketCard } from './MarketCard';
 
+const MIN_ODDS = 1010;
+const MAX_ODDS = 100_000;
+
 export function Board() {
-  const { board } = useBoard();
+  const { board, actions } = useBoard();
+
+  const step = (marketId: string, selectionId: string, delta: number) => {
+    const market = board.markets.find((m) => m.id === marketId);
+    const selection = market?.selections.find((s) => s.id === selectionId);
+    if (!selection) return;
+    const next = Math.min(MAX_ODDS, Math.max(MIN_ODDS, selection.oddsMilli + delta));
+    actions.setOdds(marketId, selectionId, next);
+  };
 
   return (
     <div className="min-h-dvh bg-neutral-900 text-neutral-100">
@@ -14,7 +25,12 @@ export function Board() {
 
       <main className="mx-auto grid max-w-6xl gap-4 p-6 sm:grid-cols-2">
         {board.markets.map((market) => (
-          <MarketCard key={market.id} market={market} />
+          <MarketCard
+            key={market.id}
+            market={market}
+            onStep={step}
+            onToggleSuspend={actions.setSuspended}
+          />
         ))}
       </main>
     </div>
