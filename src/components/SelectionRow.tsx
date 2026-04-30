@@ -6,11 +6,19 @@ import { formatDecimal } from '@/lib/odds';
 interface Props {
   marketId: string;
   selection: Selection;
+  inSlip: boolean;
   onStep: (delta: number) => void;
   onToggleSuspend: () => void;
+  onToggleSlip: () => void;
 }
 
-export function SelectionRow({ selection, onStep, onToggleSuspend }: Props) {
+export function SelectionRow({
+  selection,
+  inSlip,
+  onStep,
+  onToggleSuspend,
+  onToggleSlip,
+}: Props) {
   return (
     <div
       className={`flex items-center gap-2 rounded-md border px-3 py-2 ${
@@ -56,6 +64,17 @@ export function SelectionRow({ selection, onStep, onToggleSuspend }: Props) {
         onClick={onToggleSuspend}
       >
         {selection.suspended ? 'susp' : 'live'}
+      </button>
+
+      <button
+        aria-label={`${inSlip ? 'remove from' : 'add to'} slip ${selection.label}`}
+        className={`h-6 w-6 rounded text-sm ${
+          inSlip ? 'bg-cyan-600 text-white' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+        }`}
+        onClick={onToggleSlip}
+        disabled={selection.suspended}
+      >
+        {inSlip ? '✓' : '+'}
       </button>
     </div>
   );
