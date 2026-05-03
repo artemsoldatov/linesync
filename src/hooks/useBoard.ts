@@ -41,3 +41,39 @@ export function useBoard(): { board: BoardSnapshot; actions: BoardActions } {
 
   return { board, actions };
 }
+
+export interface Peer {
+  clientId: number;
+  name: string;
+  color: string;
+}
+
+export function usePresence(): { peers: Peer[] } {
+  const peersRef = useRef<Peer[]>([]);
+
+  const subscribe = useCallback((onChange: () => void) => {
+    const { provider, doc } = getSession();
+    const awareness = provider.awareness;
+    const update = () => {
+      const peers: Peer[] = [];
+      awareness.getStates().forEach((state, clientId) => {
+        if (clientId === doc.clientID) return;
+        const user = (state as { user?: { name: string; color: string } }).user;
+        if (user) peers.push({ clientId, name: user.name, color: user.color });
+      });
+      peersRef.current = peers;
+      onChange();
+    };
+    update();
+    awareness.on('change', update);
+    return () => awareness.off('change', update);
+  }, []);
+
+  const peers = useSyncExternalStore(
+    subscribe,
+    () => peersRef.current,
+    () => peersRef.current,
+  );
+
+  return { peers };
+}

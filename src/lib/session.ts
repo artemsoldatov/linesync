@@ -8,10 +8,14 @@ const ROOM = 'linesync';
 // server binds IPv4 — the mismatch silently fails the socket
 const WS_URL = 'ws://127.0.0.1:51234';
 
+const COLORS = ['#f97316', '#06b6d4', '#a855f7', '#22c55e', '#eab308', '#ef4444'];
+const NAMES = ['Aria', 'Milo', 'Noor', 'Kai', 'Zoe', 'Rex'];
+
 export interface Session {
   doc: Y.Doc;
   provider: WebsocketProvider;
   persistence: IndexeddbPersistence;
+  me: { name: string; color: string };
 }
 
 let session: Session | null = null;
@@ -36,6 +40,10 @@ export function getSession(): Session {
   const persistence = new IndexeddbPersistence(ROOM, doc);
   const provider = new WebsocketProvider(WS_URL, ROOM, doc);
 
+  const pick = Math.floor(Math.random() * COLORS.length);
+  const me = { name: NAMES[pick], color: COLORS[pick] };
+  provider.awareness.setLocalStateField('user', me);
+
   // seed only once we know the real state: after the server syncs (online) or
   // after local persistence loads with no server (offline first run)
   provider.once('sync', () => seedIfEmpty(doc));
@@ -43,6 +51,6 @@ export function getSession(): Session {
     setTimeout(() => seedIfEmpty(doc), 1500);
   });
 
-  session = { doc, provider, persistence };
+  session = { doc, provider, persistence, me };
   return session;
 }
