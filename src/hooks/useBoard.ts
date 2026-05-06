@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import type { BoardSnapshot } from '@/lib/board';
 import { readBoard, setOdds, setSuspended, toggleSlip } from '@/lib/board';
 import { getSession } from '@/lib/session';
@@ -46,9 +46,10 @@ export interface Peer {
   clientId: number;
   name: string;
   color: string;
+  cursor: { x: number; y: number } | null;
 }
 
-export function usePresence(): { peers: Peer[] } {
+export function usePresence(): { peers: Peer[]; setCursor: (x: number, y: number) => void } {
   const peersRef = useRef<Peer[]>([]);
 
   const subscribe = useCallback((onChange: () => void) => {
@@ -59,7 +60,8 @@ export function usePresence(): { peers: Peer[] } {
       awareness.getStates().forEach((state, clientId) => {
         if (clientId === doc.clientID) return;
         const user = (state as { user?: { name: string; color: string } }).user;
-        if (user) peers.push({ clientId, name: user.name, color: user.color });
+        const cursor = (state as { cursor?: { x: number; y: number } }).cursor ?? null;
+        if (user) peers.push({ clientId, name: user.name, color: user.color, cursor });
       });
       peersRef.current = peers;
       onChange();
@@ -75,5 +77,19 @@ export function usePresence(): { peers: Peer[] } {
     () => peersRef.current,
   );
 
-  return { peers };
+  const setCursor = useCallback((x: number, y: number) => {
+    getSession().provider.awareness.setLocalStateField('cursor', { x, y });
+  }, []);
+
+  return { peers, setCursor };
+}
+
+// keep the local awareness cursor in sync with the pointer
+export function useCursorBroadcast(): void {
+  const { setCursor } = usePresence();
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => setCursor(e.clientX, e.clientY);
+    window.addEventListener('pointermove', onMove);
+    return () => window.removeEventListener('pointermove', onMove);
+  }, [setCursor]);
 }
