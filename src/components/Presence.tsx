@@ -2,19 +2,31 @@
 
 import type { Peer } from '@/hooks/useBoard';
 
-export function PresenceBar({ peers }: { peers: Peer[] }) {
+export function PresenceBar({ peers, connected }: { peers: Peer[]; connected: boolean }) {
   return (
-    <div className="flex -space-x-2">
-      {peers.map((peer) => (
+    <div className="flex items-center gap-3">
+      <span
+        className={`flex items-center gap-1.5 text-xs ${
+          connected ? 'text-green-400' : 'text-amber-400'
+        }`}
+      >
         <span
-          key={peer.clientId}
-          title={peer.name}
-          className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-neutral-950 text-xs font-medium text-neutral-950"
-          style={{ backgroundColor: peer.color }}
-        >
-          {peer.name[0]}
-        </span>
-      ))}
+          className={`h-2 w-2 rounded-full ${connected ? 'bg-green-400' : 'bg-amber-400'}`}
+        />
+        {connected ? 'live' : 'offline — edits sync on reconnect'}
+      </span>
+      <div className="flex -space-x-2">
+        {peers.map((peer) => (
+          <span
+            key={peer.clientId}
+            title={peer.name}
+            className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-neutral-950 text-xs font-medium text-neutral-950"
+            style={{ backgroundColor: peer.color }}
+          >
+            {peer.name[0]}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

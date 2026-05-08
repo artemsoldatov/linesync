@@ -1,6 +1,6 @@
 'use client';
 
-import { useBoard, useCursorBroadcast, usePresence } from '@/hooks/useBoard';
+import { useBoard, useConnection, useCursorBroadcast, usePresence } from '@/hooks/useBoard';
 import { Cursors, PresenceBar } from './Presence';
 import { MarketCard } from './MarketCard';
 import { SlipPanel } from './SlipPanel';
@@ -11,6 +11,7 @@ const MAX_ODDS = 100_000;
 export function Board() {
   const { board, actions } = useBoard();
   const { peers } = usePresence();
+  const connected = useConnection();
   useCursorBroadcast();
 
   const slipIds = new Set(board.slip.map((p) => p.selectionId));
@@ -29,7 +30,7 @@ export function Board() {
 
       <header className="flex items-center justify-between border-b border-neutral-800 px-6 py-4">
         <h1 className="text-lg font-semibold">linesync</h1>
-        <PresenceBar peers={peers} />
+        <PresenceBar peers={peers} connected={connected} />
       </header>
 
       <main className="mx-auto grid max-w-6xl gap-6 p-6 lg:grid-cols-[1fr_320px]">

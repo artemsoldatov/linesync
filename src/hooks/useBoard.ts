@@ -84,6 +84,25 @@ export function usePresence(): { peers: Peer[]; setCursor: (x: number, y: number
   return { peers, setCursor };
 }
 
+export function useConnection(): boolean {
+  const connectedRef = useRef(false);
+  const subscribe = useCallback((onChange: () => void) => {
+    const { provider } = getSession();
+    const update = ({ status }: { status: string }) => {
+      connectedRef.current = status === 'connected';
+      onChange();
+    };
+    connectedRef.current = provider.wsconnected;
+    provider.on('status', update);
+    return () => provider.off('status', update);
+  }, []);
+  return useSyncExternalStore(
+    subscribe,
+    () => connectedRef.current,
+    () => false,
+  );
+}
+
 // keep the local awareness cursor in sync with the pointer
 export function useCursorBroadcast(): void {
   const { setCursor } = usePresence();
