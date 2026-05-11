@@ -13,6 +13,16 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
+/* brief highlight when an odds value changes under you */
+@keyframes flash {
+  0% {
+    color: #fde047;
+  }
+  100% {
+    color: #67e8f9;
+  }
+}
+
 ::view-transition-old(slip),
 ::view-transition-new(slip) {
   animation-duration: 0.2s;

@@ -21,7 +21,7 @@ export function SelectionRow({
 }: Props) {
   return (
     <div
-      className={`flex items-center gap-2 rounded-md border px-3 py-2 ${
+      className={`flex items-center gap-2 rounded-md border px-3 py-2 transition-colors ${
         selection.suspended
           ? 'border-neutral-800 bg-neutral-900/40 text-neutral-500'
           : 'border-neutral-800 bg-neutral-900'
@@ -39,8 +39,9 @@ export function SelectionRow({
           −
         </button>
         <span
+          key={selection.oddsMilli}
           data-testid={`odds-${selection.id}`}
-          className="w-12 text-center font-mono text-sm tabular-nums text-cyan-300"
+          className="w-12 text-center font-mono text-sm tabular-nums text-cyan-300 motion-safe:animate-[flash_0.4s_ease]"
         >
           {formatDecimal(selection.oddsMilli)}
         </span>
