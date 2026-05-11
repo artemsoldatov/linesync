@@ -12,3 +12,8 @@ html {
 body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
+
+::view-transition-old(slip),
+::view-transition-new(slip) {
+  animation-duration: 0.2s;
+}

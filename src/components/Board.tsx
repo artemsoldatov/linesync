@@ -8,6 +8,16 @@ import { SlipPanel } from './SlipPanel';
 const MIN_ODDS = 1010;
 const MAX_ODDS = 100_000;
 
+// wrap a mutation in a View Transition when the browser supports it
+function withTransition(fn: () => void): void {
+  const doc = document as Document & { startViewTransition?: (cb: () => void) => void };
+  if (doc.startViewTransition) {
+    doc.startViewTransition(fn);
+  } else {
+    fn();
+  }
+}
+
 export function Board() {
   const { board, actions } = useBoard();
   const { peers } = usePresence();
@@ -42,12 +52,15 @@ export function Board() {
               slipIds={slipIds}
               onStep={step}
               onToggleSuspend={actions.setSuspended}
-              onToggleSlip={actions.toggleSlip}
+              onToggleSlip={(m, s) => withTransition(() => actions.toggleSlip(m, s))}
             />
           ))}
         </div>
 
-        <SlipPanel slip={board.slip} onRemove={actions.toggleSlip} />
+        <SlipPanel
+          slip={board.slip}
+          onRemove={(m, s) => withTransition(() => actions.toggleSlip(m, s))}
+        />
       </main>
     </div>
   );

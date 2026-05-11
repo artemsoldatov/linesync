@@ -22,7 +22,7 @@ export function SlipPanel({ slip, onRemove }: Props) {
           Add selections to build a slip together — everyone in the room edits the same one.
         </p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-2" style={{ viewTransitionName: 'slip' }}>
           {slip.map((pick) => (
             <li
               key={pick.selectionId}
