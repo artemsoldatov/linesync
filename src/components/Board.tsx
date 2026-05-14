@@ -39,7 +39,12 @@ export function Board() {
       <Cursors peers={peers} />
 
       <header className="flex items-center justify-between border-b border-neutral-800 px-6 py-4">
-        <h1 className="text-lg font-semibold">linesync</h1>
+        <div>
+          <h1 className="text-lg font-semibold">linesync</h1>
+          <p className="text-xs text-neutral-500">
+            a collaborative odds board — open a second tab to see live sync
+          </p>
+        </div>
         <PresenceBar peers={peers} connected={connected} />
       </header>
 
