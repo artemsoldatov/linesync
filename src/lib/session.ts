@@ -6,7 +6,7 @@ import { addSelection, createMarket, readBoard } from './board';
 const ROOM = 'linesync';
 // 127.0.0.1, not localhost: localhost can resolve to ::1 first, and the dev
 // server binds IPv4 — the mismatch silently fails the socket
-const WS_URL = 'ws://127.0.0.1:51234';
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? 'ws://127.0.0.1:51234';
 
 const COLORS = ['#f97316', '#06b6d4', '#a855f7', '#22c55e', '#eab308', '#ef4444'];
 const NAMES = ['Aria', 'Milo', 'Noor', 'Kai', 'Zoe', 'Rex'];

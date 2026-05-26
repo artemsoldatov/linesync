@@ -5,6 +5,8 @@ RUN corepack enable
 WORKDIR /app
 
 FROM base AS build
+ARG NEXT_PUBLIC_WS_URL
+ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
 COPY package.json ./
 RUN pnpm install --no-frozen-lockfile
 COPY . .
